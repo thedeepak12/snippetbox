@@ -17,10 +17,12 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(http.Dir("./ui/static/"))
 	router.Handle("/static/*", http.StripPrefix("/static", fileServer))
 
-	router.Get("/", app.home)
-	router.Get("/snippet/view/{id}", app.snippetView)
-	router.Get("/snippet/create", app.snippetCreate)
-	router.Post("/snippet/create", app.snippetCreatePost)
+	dynamic := alice.New(app.sessionManager.LoadAndSave)
+
+	router.Method("GET", "/", dynamic.ThenFunc(app.home))
+	router.Method("GET", "/snippet/view/{id}", dynamic.ThenFunc(app.snippetView))
+	router.Method("GET", "/snippet/create", dynamic.ThenFunc(app.snippetCreate))
+	router.Method("POST", "/snippet/create", dynamic.ThenFunc(app.snippetCreatePost))
 
 	standard := alice.New(app.recoverPanic, app.logRequest, secureHeaders)
 

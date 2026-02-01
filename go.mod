@@ -3,6 +3,8 @@ module github.com/thedeepak12/snippetbox
 go 1.25
 
 require (
+	github.com/alexedwards/scs/postgresstore v0.0.0-20251002162104-209de6e426de // indirect
+	github.com/alexedwards/scs/v2 v2.9.0 // indirect
 	github.com/go-chi/chi/v5 v5.2.4 // indirect
 	github.com/go-playground/form/v4 v4.3.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect

@@ -6,12 +6,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/thedeepak12/snippetbox/internal/models"
 
 	"github.com/go-playground/form/v4"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/alexedwards/scs/v2"
+	"github.com/alexedwards/scs/postgresstore"
 	"github.com/joho/godotenv"
 )
 
@@ -21,15 +24,16 @@ type application struct {
 	snippets      *models.SnippetModel
 	templateCache map[string]*template.Template
 	formDecoder   *form.Decoder
+	sessionManager *scs.SessionManager
 }
 
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("Error loading .env file")
 	}
 
-	addr := flag.String("addr", ":4000", "HTTP Network Address")
+	addr := flag.String("addr", ":"+os.Getenv("PORT"), "HTTP Network Address")
 
 	dsn := flag.String("dsn", os.Getenv("DSN"), "PostgreSQL connection string")
 
@@ -51,12 +55,17 @@ func main() {
 
 	formDecoder := form.NewDecoder()
 
+	sessionManager := scs.New()
+	sessionManager.Store = postgresstore.New(db.DB)
+	sessionManager.Lifetime = 12 * time.Hour
+
 	app := &application{
 		errorLog:      errorLog,
 		infoLog:       infoLog,
 		snippets:      &models.SnippetModel{DB: db},
 		templateCache: templateCache,
 		formDecoder:   formDecoder,
+		sessionManager: sessionManager,
 	}
 
 	srv := &http.Server{
